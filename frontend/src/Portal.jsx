@@ -41,7 +41,7 @@ export default function Portal({ navigate }) {
     <div className="page">
       <header className="page__bar">
         <a href="/" className="nav__brand" onClick={(e) => { e.preventDefault(); navigate('/') }}>
-          <img src="/logo.jpeg" alt="" className="nav__logo" />
+          <img src="/logo.svg" alt="" className="nav__logo" />
           <span className="nav__name">Factor Empire<small>Tours &amp; Car Hire</small></span>
         </a>
         <button className="btn btn--ghost" onClick={() => navigate('/')}>

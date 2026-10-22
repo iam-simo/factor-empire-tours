@@ -40,7 +40,7 @@ function Login({ onLogin, navigate }) {
   return (
     <div className="page page--center">
       <form className="login" onSubmit={submit}>
-        <img src="/logo.jpeg" alt="Factor Empire" className="login__logo" />
+        <img src="/logo.svg" alt="Factor Empire" className="login__logo" />
         <h1>Staff sign in</h1>
         <div className="field">
           <label htmlFor="a-pass">Password</label>
@@ -189,7 +189,7 @@ export default function Admin({ auth, onLogin, onLogout, navigate }) {
     <div className="page">
       <header className="page__bar">
         <div className="nav__brand">
-          <img src="/logo.jpeg" alt="" className="nav__logo" />
+          <img src="/logo.svg" alt="" className="nav__logo" />
           <span className="nav__name">Admin dashboard<small>Factor Empire Tours &amp; Car Hire</small></span>
         </div>
         <div className="page__bar-actions">
