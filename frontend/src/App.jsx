@@ -14,6 +14,8 @@ const LOGO = '/logo.svg'
 const FOUNDER = '/founder.jpeg'
 const photo = (f) => `/photos/${f}`
 
+const START = ['mara', 'diani', 'events']
+
 const NAV = [
   { label: 'Home', href: '/' },
   { label: 'Tours', href: '/tours' },
@@ -23,12 +25,14 @@ const NAV = [
 ]
 
 const PLACES = [
-  { id: 'mara', title: 'Maasai Mara', line: 'River crossings, lion prides and endless plains.', when: 'Jul to Oct for the migration', days: '3 to 5 days', img: photo('mara.jpg') },
-  { id: 'amboseli', title: 'Amboseli', line: 'Elephant herds walking beneath Kilimanjaro.', when: 'Jun to Oct for clear mountain views', days: '2 to 3 days', img: photo('amboseli.jpg') },
-  { id: 'nakuru', title: 'Lake Nakuru', line: 'Rhinos, buffalo and pink flamingo shores.', when: 'All year', days: '1 to 2 days', img: photo('nakuru.jpg') },
-  { id: 'naivasha', title: "Naivasha & Hell's Gate", line: 'Cycle between cliffs and zebras, then boat among hippos.', when: 'Jun to Feb, the drier months', days: '1 to 2 days', img: photo('naivasha.jpg') },
-  { id: 'diani', title: 'Diani Beach', line: 'White sand and warm Indian Ocean water.', when: 'Dec to Mar, Jul to Oct', days: '3 to 6 days', img: photo('diani.jpg') },
-  { id: 'lamu', title: 'Lamu Old Town', line: 'Dhows, coral-stone lanes and donkeys instead of traffic.', when: 'Dec to Mar', days: '3 to 4 days', img: photo('lamu.jpg') },
+  { id: 'mara', title: 'Maasai Mara', line: 'River crossings, lion prides and endless plains.', when: 'Jul to Oct for the migration', days: '3 to 5 days', img: photo('mara.jpg'), credit: '' },
+  { id: 'amboseli', title: 'Amboseli', line: 'Elephant herds walking beneath Kilimanjaro.', when: 'Jun to Oct for clear mountain views', days: '2 to 3 days', img: photo('amboseli.jpg'), credit: '' },
+  { id: 'nakuru', title: 'Lake Nakuru', line: 'Rhinos, buffalo and pink flamingo shores.', when: 'All year', days: '1 to 2 days', img: photo('nakuru.jpg'), credit: '' },
+  { id: 'naivasha', title: "Naivasha & Hell's Gate", line: 'Cycle between cliffs and zebras, then boat among hippos.', when: 'Jun to Feb, the drier months', days: '1 to 2 days', img: photo('naivasha.jpg'), credit: '' },
+  { id: 'diani', title: 'Diani Beach', line: 'White sand and warm Indian Ocean water.', when: 'Dec to Mar, Jul to Oct', days: '3 to 6 days', img: photo('diani.jpg'), credit: '' },
+  { id: 'mombasa', title: 'Mombasa', line: 'Fort Jesus, Old Town lanes and Nyali beach, with city transfers.', when: 'Dec to Mar, Jul to Oct', days: '2 to 4 days', img: photo('mombasa.jpg'), credit: '' },
+  { id: 'lamu', title: 'Lamu Old Town', line: 'Dhows, coral-stone lanes and donkeys instead of traffic.', when: 'Dec to Mar', days: '3 to 4 days', img: photo('lamu.jpg'), credit: '' },
+  { id: 'events', title: 'Private Events', line: 'Chauffeured cars and coaches for weddings, birthdays, corporate days out and school trips.', when: 'Any date', days: 'Half day to multi-day', img: photo('events.jpg'), credit: '', cta: 'Plan this event' },
 ]
 
 const VEHICLES = [
@@ -279,18 +283,58 @@ function Shell({ navigate, children }) {
   )
 }
 
+/* Animated hero: a safari van drives past a camp at sunset (pure SVG + CSS, no photo needed) */
+function Scene() {
+  return (
+    <svg className="scene" viewBox="0 0 1600 800" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="sg" cx=".4" cy=".35"><stop offset="0" stopColor="#ffe0b8" /><stop offset=".55" stopColor="#ff9a52" /><stop offset="1" stopColor="#e0502b" /></radialGradient>
+        <radialGradient id="fg"><stop offset="0" stopColor="#ffb27a" stopOpacity=".7" /><stop offset="1" stopColor="#ffb27a" stopOpacity="0" /></radialGradient>
+      </defs>
+      {[[120, 90], [380, 160], [620, 60], [840, 140], [1010, 70], [1330, 120], [1480, 60], [250, 230]].map(([x, y], i) => (
+        <circle key={i} className="scene__star" cx={x} cy={y} r="2.2" fill="#fff" style={{ animationDelay: `${i * 0.6}s` }} />
+      ))}
+      <circle className="scene__sun" cx="1130" cy="470" r="120" fill="url(#sg)" />
+      <g className="scene__cloud" fill="#ffd1a3" opacity=".35"><ellipse cx="500" cy="260" rx="130" ry="16" /><ellipse cx="580" cy="246" rx="80" ry="14" /></g>
+      <g className="scene__cloud scene__cloud--b" fill="#ffd1a3" opacity=".3"><ellipse cx="1200" cy="200" rx="110" ry="14" /><ellipse cx="1270" cy="188" rx="70" ry="12" /></g>
+      <path d="M0 560 C200 480 360 520 560 500 S900 440 1100 500 S1450 480 1600 520 V800 H0Z" fill="#0f4a60" opacity=".85" />
+      <path d="M0 625 C250 565 450 605 700 585 S1100 545 1300 595 S1500 605 1600 585 V800 H0Z" fill="#0a3446" />
+      <path d="M0 690 H1600 V800 H0Z" fill="#061f29" />
+      <g fill="#061f29"><path d="M905 690 C905 640 893 600 880 565 M910 690 C915 635 935 595 960 555" stroke="#061f29" strokeWidth="8" fill="none" strokeLinecap="round" /><ellipse cx="885" cy="552" rx="95" ry="17" /><ellipse cx="965" cy="540" rx="80" ry="14" /></g>
+      <polygon points="1170,690 1235,605 1300,690" fill="#ff9a52" /><polygon points="1235,605 1217,690 1253,690" fill="#c2562d" />
+      <circle className="scene__glow" cx="1370" cy="670" r="70" fill="url(#fg)" />
+      <path d="M1352 692 H1388" stroke="#3a2415" strokeWidth="6" strokeLinecap="round" />
+      <g className="scene__flame"><path d="M1370 690 C1352 670 1360 655 1370 636 C1380 655 1388 670 1370 690Z" fill="#ff7a45" /><path d="M1370 690 C1362 678 1366 668 1370 658 C1374 668 1378 678 1370 690Z" fill="#ffd199" /></g>
+      <rect y="728" width="1600" height="72" fill="#7a4028" />
+      <path className="scene__dash" d="M0 764 H1600" stroke="#ffd199" strokeWidth="4" strokeDasharray="46 40" opacity=".7" />
+      <g transform="translate(0 758) scale(1.5)">
+        <g className="scene__van">
+          <g className="scene__bounce">
+            <path d="M150 -42 L260 -62 V-24Z" fill="#ffe2a0" opacity=".25" />
+            <rect x="0" y="-52" width="150" height="40" rx="10" fill="#f4ead8" />
+            <path d="M20 -52 L36 -80 H112 L134 -52Z" fill="#f4ead8" />
+            <path d="M42 -74 H72 V-54 H36Z M78 -74 H108 L122 -54 H78Z" fill="#17536a" />
+            <rect x="26" y="-90" width="94" height="7" rx="3" fill="#ff7a45" />
+            <rect x="0" y="-32" width="150" height="6" fill="#ff7a45" />
+            <rect x="140" y="-46" width="8" height="8" rx="2" fill="#ffe2a0" />
+          </g>
+          {[32, 118].map((x) => (
+            <g key={x} transform={`translate(${x} -12)`}><g className="scene__wheel"><circle r="14" fill="#061f29" /><circle r="5" fill="#ffd199" /><path d="M-14 0H14M0 -14V14" stroke="#ffd199" strokeWidth="2" /></g></g>
+          ))}
+        </g>
+      </g>
+    </svg>
+  )
+}
+
 /* ------------------------------ HOME: story + invitation ------------------------------ */
 function Home({ navigate }) {
   return (
     <Shell navigate={navigate}>
       {() => (
         <>
-          <section className="sun" style={{ '--hero-img': `url(${photo('hero.jpg')})` }}>
-            <div className="sun__disc" aria-hidden="true" />
-            <svg className="sun__tree" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
-              <path d="M200 300 C200 240 180 190 168 138 M206 300 C212 230 236 170 262 118" stroke="#061f29" strokeWidth="9" fill="none" strokeLinecap="round" />
-              <g fill="#061f29"><ellipse cx="170" cy="124" rx="130" ry="22" /><ellipse cx="270" cy="106" rx="110" ry="18" /><ellipse cx="90" cy="140" rx="60" ry="12" /></g>
-            </svg>
+          <section className="sun">
+            <Scene />
             <div className="container sun__text">
               <h1>Explore more.<br />Drive further.</h1>
               <p>Safari, coast and car hire from one Kenyan team. We handle the road, you watch the horizon.</p>
@@ -305,17 +349,17 @@ function Home({ navigate }) {
             <div className="container">
               <header className="section__head">
                 <h2>Where most guests begin</h2>
-                <p>Three of our favourite places. The full list, with seasons and trip lengths, is on the tours page.</p>
+                <p>A park, a beach and a private celebration. More destinations, with seasons and trip lengths, are on the tours page.</p>
               </header>
               <div className="tiles">
-                {PLACES.slice(0, 3).map((p) => (
+                {START.map((id) => PLACES.find((p) => p.id === id)).map((p) => (
                   <Link key={p.id} to={`/tours#${p.id}`} navigate={navigate} className="tile">
                     <Img src={p.img} alt={p.title} />
                     <span>{p.title}</span>
                   </Link>
                 ))}
               </div>
-              <p className="more"><Link to="/tours" navigate={navigate} className="link-gold">See all six destinations <i className="fa-solid fa-arrow-right" aria-hidden="true" /></Link></p>
+              <p className="more"><Link to="/tours" navigate={navigate} className="link-gold">See more destinations <i className="fa-solid fa-arrow-right" aria-hidden="true" /></Link></p>
             </div>
           </section>
 
@@ -374,8 +418,9 @@ function Tours({ navigate }) {
                     <h2>{p.title}</h2>
                     <p>{p.line}</p>
                     <p className="place__meta"><i className="fa-regular fa-sun" aria-hidden="true" /> {p.when} <i className="fa-regular fa-clock" aria-hidden="true" /> {p.days}</p>
-                    <button className="btn btn--gold" onClick={() => onBook({ kind: 'tour', item: p.title })}>Plan this trip</button>
+                    <button className="btn btn--gold" onClick={() => onBook({ kind: 'tour', item: p.title })}>{p.cta || 'Plan this trip'}</button>
                   </div>
+                  {p.credit && <small className="place__credit">Photo: {p.credit}</small>}
                 </article>
               ))}
             </div>
