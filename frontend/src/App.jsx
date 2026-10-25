@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Portal from './Portal.jsx'
 import Admin from './Admin.jsx'
 
@@ -13,6 +13,7 @@ const CONTACT = {
 const LOGO = '/logo.svg'
 const FOUNDER = '/founder.jpeg'
 const photo = (f) => `/photos/${f}`
+const HERO_PHOTO = photo('van-hero.jpg')
 
 const START = ['mara', 'diani', 'events']
 
@@ -35,12 +36,13 @@ const PLACES = [
   { id: 'events', title: 'Private Events', line: 'Chauffeured cars and coaches for weddings, birthdays, corporate days out and school trips.', when: 'Any date', days: 'Half day to multi-day', img: photo('events.jpg'), credit: '', cta: 'Plan this event' },
 ]
 
+/* img = a photo in public/photos/. If the file is missing, the icon is shown instead. */
 const VEHICLES = [
-  { icon: 'fa-car-side', title: 'Saloon Cars', text: 'City, business and weekends', blurb: 'Smooth and efficient for town trips and airport runs.' },
-  { icon: 'fa-truck-monster', title: 'SUVs', text: 'Safari tracks and long highways', blurb: 'Land Cruisers and Prados that handle rough roads and rain.' },
-  { icon: 'fa-van-shuttle', title: 'Vans', text: 'Families and small teams', blurb: 'Air-conditioned vans with room for luggage and everyone.' },
-  { icon: 'fa-bus', title: 'Buses', text: 'Weddings, schools and events', blurb: 'Coaches for large groups and multi-stop tours.' },
-  { icon: 'fa-user-tie', title: 'Chauffeur Services', text: 'A driver who knows the route', blurb: 'Courteous, experienced drivers who keep you on time.' },
+  { icon: 'fa-car-side', img: 'car-saloon.jpg', title: 'Saloon Cars', text: 'City, business and weekends', blurb: 'Smooth and efficient for town trips and airport runs.' },
+  { icon: 'fa-truck-monster', img: 'car-suv.jpg', title: 'SUVs', text: 'Safari tracks and long highways', blurb: 'Land Cruisers and Prados that handle rough roads and rain.' },
+  { icon: 'fa-van-shuttle', img: 'car-van.jpg', title: 'Vans', text: 'Families and small teams', blurb: 'Air-conditioned vans with room for luggage and everyone.' },
+  { icon: 'fa-bus', img: 'car-bus.jpg', title: 'Buses', text: 'Weddings, schools and events', blurb: 'Coaches for large groups and multi-stop tours.' },
+  { icon: 'fa-user-tie', img: 'car-chauffeur.jpg', title: 'Chauffeur Services', text: 'A driver who knows the route', blurb: 'Courteous, experienced drivers who keep you on time.' },
 ]
 
 const PERKS = [
@@ -99,6 +101,47 @@ function Img({ src, alt, className }) {
   const [failed, setFailed] = useState(false)
   if (failed) return <div className={`img-fallback ${className || ''}`} role="img" aria-label={alt} />
   return <img src={src} alt={alt} className={className} loading="lazy" onError={() => setFailed(true)} />
+}
+
+/* A vehicle photo; if the file does not exist yet, show the icon instead */
+function VehiclePic({ v }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) return <div className="vwrap vwrap--icon"><i className={`fa-solid ${v.icon}`} aria-hidden="true" /></div>
+  return (
+    <div className="vwrap">
+      <img src={photo(v.img)} alt={v.title} loading="lazy" onError={() => setFailed(true)} />
+    </div>
+  )
+}
+
+/* ------------------------------ animation helpers ------------------------------ */
+/* Fades and lifts anything with className="reveal" the first time it scrolls into view */
+function useReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll('.reveal')
+    if (!('IntersectionObserver' in window)) { els.forEach((el) => el.classList.add('is-in')); return }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target) } })
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' })
+    els.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+}
+
+/* Moves the hero photo slightly slower than the page while you scroll */
+function useParallax(ref) {
+  useEffect(() => {
+    const el = ref.current
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let raf = 0
+    const onScroll = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => el.style.setProperty('--py', `${Math.min(window.scrollY, 900) * 0.16}px`))
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf) }
+  }, [ref])
 }
 
 async function sendEnquiry(payload) {
@@ -273,6 +316,7 @@ function BookingModal({ data, onClose, navigate }) {
 function Shell({ navigate, children }) {
   const [booking, setBooking] = useState(null)
   const close = useCallback(() => setBooking(null), [])
+  useReveal()
   return (
     <>
       <Navbar navigate={navigate} />
@@ -283,61 +327,26 @@ function Shell({ navigate, children }) {
   )
 }
 
-/* Animated hero: a safari van drives past a camp at sunset (pure SVG + CSS, no photo needed) */
-function Scene() {
-  return (
-    <svg className="scene" viewBox="0 0 1600 800" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-      <defs>
-        <radialGradient id="sg" cx=".4" cy=".35"><stop offset="0" stopColor="#ffe0b8" /><stop offset=".55" stopColor="#ff9a52" /><stop offset="1" stopColor="#e0502b" /></radialGradient>
-        <radialGradient id="fg"><stop offset="0" stopColor="#ffb27a" stopOpacity=".7" /><stop offset="1" stopColor="#ffb27a" stopOpacity="0" /></radialGradient>
-      </defs>
-      {[[120, 90], [380, 160], [620, 60], [840, 140], [1010, 70], [1330, 120], [1480, 60], [250, 230]].map(([x, y], i) => (
-        <circle key={i} className="scene__star" cx={x} cy={y} r="2.2" fill="#fff" style={{ animationDelay: `${i * 0.6}s` }} />
-      ))}
-      <circle className="scene__sun" cx="1130" cy="470" r="120" fill="url(#sg)" />
-      <g className="scene__cloud" fill="#ffd1a3" opacity=".35"><ellipse cx="500" cy="260" rx="130" ry="16" /><ellipse cx="580" cy="246" rx="80" ry="14" /></g>
-      <g className="scene__cloud scene__cloud--b" fill="#ffd1a3" opacity=".3"><ellipse cx="1200" cy="200" rx="110" ry="14" /><ellipse cx="1270" cy="188" rx="70" ry="12" /></g>
-      <path d="M0 560 C200 480 360 520 560 500 S900 440 1100 500 S1450 480 1600 520 V800 H0Z" fill="#0f4a60" opacity=".85" />
-      <path d="M0 625 C250 565 450 605 700 585 S1100 545 1300 595 S1500 605 1600 585 V800 H0Z" fill="#0a3446" />
-      <path d="M0 690 H1600 V800 H0Z" fill="#061f29" />
-      <g fill="#061f29"><path d="M905 690 C905 640 893 600 880 565 M910 690 C915 635 935 595 960 555" stroke="#061f29" strokeWidth="8" fill="none" strokeLinecap="round" /><ellipse cx="885" cy="552" rx="95" ry="17" /><ellipse cx="965" cy="540" rx="80" ry="14" /></g>
-      <polygon points="1170,690 1235,605 1300,690" fill="#ff9a52" /><polygon points="1235,605 1217,690 1253,690" fill="#c2562d" />
-      <circle className="scene__glow" cx="1370" cy="670" r="70" fill="url(#fg)" />
-      <path d="M1352 692 H1388" stroke="#3a2415" strokeWidth="6" strokeLinecap="round" />
-      <g className="scene__flame"><path d="M1370 690 C1352 670 1360 655 1370 636 C1380 655 1388 670 1370 690Z" fill="#ff7a45" /><path d="M1370 690 C1362 678 1366 668 1370 658 C1374 668 1378 678 1370 690Z" fill="#ffd199" /></g>
-      <rect y="728" width="1600" height="72" fill="#7a4028" />
-      <path className="scene__dash" d="M0 764 H1600" stroke="#ffd199" strokeWidth="4" strokeDasharray="46 40" opacity=".7" />
-      <g transform="translate(0 758) scale(1.5)">
-        <g className="scene__van">
-          <g className="scene__bounce">
-            <path d="M150 -42 L260 -62 V-24Z" fill="#ffe2a0" opacity=".25" />
-            <rect x="0" y="-52" width="150" height="40" rx="10" fill="#f4ead8" />
-            <path d="M20 -52 L36 -80 H112 L134 -52Z" fill="#f4ead8" />
-            <path d="M42 -74 H72 V-54 H36Z M78 -74 H108 L122 -54 H78Z" fill="#17536a" />
-            <rect x="26" y="-90" width="94" height="7" rx="3" fill="#ff7a45" />
-            <rect x="0" y="-32" width="150" height="6" fill="#ff7a45" />
-            <rect x="140" y="-46" width="8" height="8" rx="2" fill="#ffe2a0" />
-          </g>
-          {[32, 118].map((x) => (
-            <g key={x} transform={`translate(${x} -12)`}><g className="scene__wheel"><circle r="14" fill="#061f29" /><circle r="5" fill="#ffd199" /><path d="M-14 0H14M0 -14V14" stroke="#ffd199" strokeWidth="2" /></g></g>
-          ))}
-        </g>
-      </g>
-    </svg>
-  )
-}
-
 /* ------------------------------ HOME: story + invitation ------------------------------ */
 function Home({ navigate }) {
+  const heroRef = useRef(null)
+  useParallax(heroRef)
   return (
     <Shell navigate={navigate}>
       {() => (
         <>
-          <section className="sun">
-            <Scene />
+          <section className="sun" ref={heroRef}>
+            <div className="sun__bg" style={{ backgroundImage: `url(${HERO_PHOTO})` }} aria-hidden="true" />
+            <div className="sun__photo">
+              <img className="sun__img" src={HERO_PHOTO} alt="A Factor Empire van parked beside the lake at sunset" />
+            </div>
             <div className="container sun__text">
-              <h1>Explore more.<br />Drive further.</h1>
-              <p>Safari, coast and car hire from one Kenyan team. We handle the road, you watch the horizon.</p>
+              <p className="sun__badge"><span className="dot" aria-hidden="true" /> Open 24/7 · Airport transfers</p>
+              <h1>
+                <span className="line"><span>Explore more.</span></span>
+                <span className="line"><span>Drive further.</span></span>
+              </h1>
+              <p className="sun__sub">Safari, coast and car hire from one Kenyan team. We handle the road, you watch the horizon.</p>
               <div className="sun__actions">
                 <Link to="/tours" navigate={navigate} className="btn btn--gold">Browse tours</Link>
                 <Link to="/cars" navigate={navigate} className="btn btn--ghost">Hire a vehicle</Link>
@@ -347,42 +356,42 @@ function Home({ navigate }) {
 
           <section className="section">
             <div className="container">
-              <header className="section__head">
+              <header className="section__head reveal">
                 <h2>Where most guests begin</h2>
                 <p>A park, a beach and a private celebration. More destinations, with seasons and trip lengths, are on the tours page.</p>
               </header>
               <div className="tiles">
-                {START.map((id) => PLACES.find((p) => p.id === id)).map((p) => (
-                  <Link key={p.id} to={`/tours#${p.id}`} navigate={navigate} className="tile">
+                {START.map((id) => PLACES.find((p) => p.id === id)).map((p, i) => (
+                  <Link key={p.id} to={`/tours#${p.id}`} navigate={navigate} className="tile reveal" style={{ '--i': i }}>
                     <Img src={p.img} alt={p.title} />
                     <span>{p.title}</span>
                   </Link>
                 ))}
               </div>
-              <p className="more"><Link to="/tours" navigate={navigate} className="link-gold">See more destinations <i className="fa-solid fa-arrow-right" aria-hidden="true" /></Link></p>
+              <p className="more reveal"><Link to="/tours" navigate={navigate} className="link-gold">See more destinations <i className="fa-solid fa-arrow-right" aria-hidden="true" /></Link></p>
             </div>
           </section>
 
           <section className="section section--alt">
             <div className="container split">
-              <div>
+              <div className="reveal">
                 <h2>A ride that fits the road ahead</h2>
                 <p className="lead">Saloons for town, Land Cruisers for the park gate, coaches for the whole wedding party. Every vehicle comes with a driver option.</p>
                 <Link to="/cars" navigate={navigate} className="btn btn--gold">See vehicles and prices</Link>
               </div>
               <ul className="chips">
-                {VEHICLES.map((v) => <li key={v.title}><i className={`fa-solid ${v.icon}`} aria-hidden="true" /> {v.title}</li>)}
+                {VEHICLES.map((v, i) => <li key={v.title} className="reveal" style={{ '--i': i }}><i className={`fa-solid ${v.icon}`} aria-hidden="true" /> {v.title}</li>)}
               </ul>
             </div>
           </section>
 
           <section id="about" className="section">
             <div className="container about">
-              <div className="about__media">
+              <div className="about__media reveal">
                 <Img src={FOUNDER} alt="Founder of Factor Empire Tours & Car Hire" />
                 <span className="about__badge"><i className="fa-solid fa-road" aria-hidden="true" /> Founder and lead driver</span>
               </div>
-              <div className="about__text">
+              <div className="about__text reveal" style={{ '--i': 2 }}>
                 <h2>One van, one promise</h2>
                 <p>Factor Empire began with a single van and a rule: arrive on time and treat every passenger like family. We still work that way, now across towns, the coast and the game parks.</p>
                 <ul className="about__points">
@@ -412,7 +421,7 @@ function Tours({ navigate }) {
           <section className="section section--tight"><div className="container">
             <div className="places">
               {PLACES.map((p) => (
-                <article key={p.id} id={p.id} className="place">
+                <article key={p.id} id={p.id} className="place reveal">
                   <Img src={p.img} alt={p.title} />
                   <div className="place__body">
                     <h2>{p.title}</h2>
@@ -445,9 +454,9 @@ function Cars({ navigate }) {
           </div></header>
           <section className="section section--tight"><div className="container">
             <ul className="rows">
-              {VEHICLES.map((v) => (
-                <li key={v.title}>
-                  <span className="icon-ring"><i className={`fa-solid ${v.icon}`} aria-hidden="true" /></span>
+              {VEHICLES.map((v, i) => (
+                <li key={v.title} className="reveal" style={{ '--i': i }}>
+                  <VehiclePic v={v} />
                   <div><h3>{v.title}</h3><p className="fleet__tag">{v.text}</p><p>{v.blurb}</p></div>
                   <button className="btn btn--ghost" onClick={() => onBook({ kind: 'car', item: v.title })}>Request a quote</button>
                 </li>
@@ -455,10 +464,10 @@ function Cars({ navigate }) {
             </ul>
           </div></section>
           <section className="section section--alt"><div className="container">
-            <header className="section__head"><h2>What you can count on</h2></header>
+            <header className="section__head reveal"><h2>What you can count on</h2></header>
             <ul className="perks">
-              {PERKS.map((t) => (
-                <li key={t.title}><span className="why__icon"><i className={`fa-solid ${t.icon}`} aria-hidden="true" /></span><div><h3>{t.title}</h3><p>{t.text}</p></div></li>
+              {PERKS.map((t, i) => (
+                <li key={t.title} className="reveal" style={{ '--i': i % 2 }}><span className="why__icon"><i className={`fa-solid ${t.icon}`} aria-hidden="true" /></span><div><h3>{t.title}</h3><p>{t.text}</p></div></li>
               ))}
             </ul>
           </div></section>
